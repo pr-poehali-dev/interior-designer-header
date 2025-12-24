@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +11,32 @@ const Index = () => {
     email: '',
     message: ''
   });
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState('');
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+      
+      const sections = ['portfolio', 'about', 'services', 'testimonials', 'contact'];
+      const current = sections.find(section => {
+        const element = document.getElementById(section);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          return rect.top <= 150 && rect.bottom >= 150;
+        }
+        return false;
+      });
+      if (current) setActiveSection(current);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,9 +105,58 @@ const Index = () => {
     }
   ];
 
+  const menuItems = [
+    { id: 'portfolio', label: 'Портфолио' },
+    { id: 'about', label: 'О нас' },
+    { id: 'services', label: 'Услуги' },
+    { id: 'testimonials', label: 'Отзывы' },
+    { id: 'contact', label: 'Контакты' }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
-      <section className="relative h-screen flex items-center overflow-hidden">
+      <nav 
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled ? 'bg-background/95 backdrop-blur-md shadow-md' : 'bg-transparent'
+        }`}
+      >
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="text-xl font-light tracking-wide hover:text-accent transition-colors"
+            >
+              Interior Design
+            </button>
+            
+            <div className="hidden md:flex items-center gap-8">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  className={`text-sm font-light hover:text-accent transition-colors relative ${
+                    activeSection === item.id ? 'text-accent' : ''
+                  }`}
+                >
+                  {item.label}
+                  {activeSection === item.id && (
+                    <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-accent" />
+                  )}
+                </button>
+              ))}
+            </div>
+            
+            <Button 
+              size="sm"
+              className="bg-accent hover:bg-accent/90 text-white"
+              onClick={() => scrollToSection('contact')}
+            >
+              Связаться
+            </Button>
+          </div>
+        </div>
+      </nav>
+      <section className="relative h-screen flex items-center overflow-hidden pt-20">
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
